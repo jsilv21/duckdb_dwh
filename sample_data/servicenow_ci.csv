@@ -1,0 +1,4 @@
+ci_sys_id,ci_name,ci_class,app_service,environment
+abc123,web-01,cmdb_ci_server,Customer Portal,prod
+def456,db-01,cmdb_ci_database,Customer Portal,prod
+ghi789,api-01,cmdb_ci_appl,Order API,qa

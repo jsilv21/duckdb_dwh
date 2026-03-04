@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling>=1.24.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "duckdb-dwh"
+version = "0.1.0"
+description = "Minimal extraction framework for Flexera/ServiceNow to DuckDB"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "duckdb>=1.2.0",
+]
+
+[project.scripts]
+dwh-extract = "duckdb_dwh.main:main"
+
+[tool.uv]
+package = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/duckdb_dwh"]
