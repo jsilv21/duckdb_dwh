@@ -36,6 +36,11 @@ This workflow does:
 3. Download exported file using the status response download path/url
 4. Save raw API responses + file in run folder
 
+Default FNMS endpoint templates used:
+
+- Trigger: `/fnms/v1/orgs/{org_id}/reports/{report_id}/exports`
+- Status: `/fnms/v1/orgs/{org_id}/reports/exports/{export_id}`
+
 Raw output example:
 
 - `data/raw/flexera_rest_report_export/report_<report_id>/<run_id>/trigger_response.json`

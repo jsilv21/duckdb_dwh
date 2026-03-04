@@ -31,13 +31,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     flex_parser.add_argument(
         "--trigger-path-template",
-        default="/fnms/v1/orgs/{org_id}/reports/{report_id}/export",
+        default="/fnms/v1/orgs/{org_id}/reports/{report_id}/exports",
         help="Trigger endpoint template with {org_id} and {report_id}",
     )
     flex_parser.add_argument(
         "--status-path-template",
-        default="/fnms/v1/orgs/{org_id}/reports/{report_id}/exports/{export_id}",
-        help="Status endpoint template with {org_id}, {report_id}, and {export_id}",
+        default="/fnms/v1/orgs/{org_id}/reports/exports/{export_id}",
+        help="Status endpoint template with {org_id} and {export_id}",
     )
     flex_parser.add_argument("--poll-interval-seconds", type=int, default=10, help="Seconds between status polls")
     flex_parser.add_argument("--max-polls", type=int, default=60, help="Maximum status polls before timeout")

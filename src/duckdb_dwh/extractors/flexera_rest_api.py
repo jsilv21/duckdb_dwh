@@ -22,8 +22,8 @@ class FlexeraRestReportExporter:
         report_id: str,
         token: str,
         output_dir: Path,
-        trigger_path_template: str = "/fnms/v1/orgs/{org_id}/reports/{report_id}/export",
-        status_path_template: str = "/fnms/v1/orgs/{org_id}/reports/{report_id}/exports/{export_id}",
+        trigger_path_template: str = "/fnms/v1/orgs/{org_id}/reports/{report_id}/exports",
+        status_path_template: str = "/fnms/v1/orgs/{org_id}/reports/exports/{export_id}",
         trigger_body: dict[str, Any] | None = None,
         poll_interval_seconds: int = 10,
         max_polls: int = 60,
@@ -159,8 +159,9 @@ class FlexeraRestReportExporter:
         return json.loads(body) if body else {}
 
     def _extract_export_id(self, payload: dict[str, Any]) -> str | None:
+        data = self._data_node(payload)
         for key in ("exportId", "reportExportId", "id", "jobId"):
-            value = payload.get(key)
+            value = data.get(key)
             if isinstance(value, (str, int)):
                 return str(value)
         return None
@@ -171,8 +172,9 @@ class FlexeraRestReportExporter:
         headers: dict[str, str],
         export_id: str | None,
     ) -> str | None:
+        data = self._data_node(payload)
         for key in ("statusUrl", "status_url", "reportExportStatusUrl"):
-            value = payload.get(key)
+            value = data.get(key)
             if isinstance(value, str) and value:
                 return parse.urljoin(f"{self.base_url}/", value)
 
@@ -186,6 +188,7 @@ class FlexeraRestReportExporter:
         return None
 
     def _extract_download_url(self, payload: dict[str, Any]) -> str | None:
+        data = self._data_node(payload)
         for key in (
             "downloadUrl",
             "download_url",
@@ -194,26 +197,27 @@ class FlexeraRestReportExporter:
             "path",
             "filePath",
         ):
-            value = payload.get(key)
+            value = data.get(key)
             if isinstance(value, str) and value:
                 return value
 
-        links = payload.get("links")
+        links = data.get("links")
         if isinstance(links, dict):
             for key in ("download", "file", "self"):
                 value = links.get(key)
                 if isinstance(value, str) and value:
                     return value
 
-        result = payload.get("result")
+        result = data.get("result")
         if isinstance(result, dict):
             return self._extract_download_url(result)
 
         return None
 
     def _is_terminal_success(self, payload: dict[str, Any]) -> bool:
+        data = self._data_node(payload)
         for key in ("status", "state"):
-            value = payload.get(key)
+            value = data.get(key)
             if isinstance(value, str) and value.lower() in {
                 "completed",
                 "complete",
@@ -225,16 +229,25 @@ class FlexeraRestReportExporter:
         return False
 
     def _is_terminal_failure(self, payload: dict[str, Any]) -> bool:
+        data = self._data_node(payload)
         for key in ("status", "state"):
-            value = payload.get(key)
+            value = data.get(key)
             if isinstance(value, str) and value.lower() in {
                 "failed",
                 "error",
+                "errored",
+                "no data found",
                 "cancelled",
                 "canceled",
             }:
                 return True
         return False
+
+    def _data_node(self, payload: dict[str, Any]) -> dict[str, Any]:
+        data = payload.get("data")
+        if isinstance(data, dict):
+            return data
+        return payload
 
     def _download_file(self, url: str, run_dir: Path) -> Path:
         req = request.Request(
