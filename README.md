@@ -9,7 +9,7 @@ uv sync
 uv run dwh-extract servicenow-csv --input sample_data/servicenow_ci.csv --db data/warehouse.duckdb
 ```
 
-## Flexera API wireframe
+## Flexera REST report export wireframe
 
 Set token in env:
 
@@ -20,15 +20,28 @@ export FLEXERA_API_TOKEN="your-token-here"
 Run extract:
 
 ```bash
-uv run dwh-extract flexera-api \
+uv run dwh-extract flexera-rest-report-export \
   --base-url https://your-flexera-host \
-  --endpoint /api/path/to/resource \
-  --db data/warehouse.duckdb \
-  --page-size 200 \
-  --max-pages 10
+  --org-id your-org-id \
+  --report-id 12345 \
+  --out-dir data/raw \
+  --poll-interval-seconds 10 \
+  --max-polls 60
 ```
 
-This lands records in `raw_flexera_api` with one JSON payload per row.
+This workflow does:
+
+1. Trigger report export by `report_id`
+2. Poll report export status endpoint until completion
+3. Download exported file using the status response download path/url
+4. Save raw API responses + file in run folder
+
+Raw output example:
+
+- `data/raw/flexera_rest_report_export/report_<report_id>/<run_id>/trigger_response.json`
+- `data/raw/flexera_rest_report_export/report_<report_id>/<run_id>/status_poll_0001.json`
+- `data/raw/flexera_rest_report_export/report_<report_id>/<run_id>/<downloaded_report_file>`
+- `data/raw/flexera_rest_report_export/report_<report_id>/<run_id>/manifest.json`
 
 ## What this does
 
@@ -36,4 +49,4 @@ This lands records in `raw_flexera_api` with one JSON payload per row.
 - Adds run metadata (`run_id`, `extract_ts_utc`, `source_system`, `extract_name`)
 - Loads data into a DuckDB table: `raw_servicenow_ci`
 - Writes audit rows to `etl_audit_log`
-- Includes a Flexera API extractor template that lands raw JSON rows in `raw_flexera_api`
+- Includes a Flexera REST report export extractor template (trigger, status, download)
